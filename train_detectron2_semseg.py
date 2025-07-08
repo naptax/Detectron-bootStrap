@@ -92,8 +92,8 @@ if __name__ == "__main__":
 
     # Configuration Detectron2
     cfg = get_cfg()
-    config_path = BACKBONES[args.backbone]
-    cfg.merge_from_file(model_zoo.get_config_file(config_path))
+    detectron2_config_path = BACKBONES[args.backbone]
+    cfg.merge_from_file(model_zoo.get_config_file(detectron2_config_path))
     cfg.DATASETS.TRAIN = ("my_train",)
     cfg.DATASETS.TEST = ("my_val",)
     cfg.DATALOADER.NUM_WORKERS = 2
@@ -109,10 +109,10 @@ if __name__ == "__main__":
     os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
 
     # Sauvegarde de la configuration complète dans le dossier de sortie
-    config_path = os.path.join(cfg.OUTPUT_DIR, "config.yaml")
-    with open(config_path, "w") as f:
+    output_config_path = os.path.join(cfg.OUTPUT_DIR, "config.yaml")
+    with open(output_config_path, "w") as f:
         f.write(cfg.dump())
-    print(f"\033[1;36mConfiguration sauvegardée dans : {config_path}\033[0m")
+    print(f"\033[1;36mConfiguration sauvegardée dans : {output_config_path}\033[0m")
 
     print(f"\n\033[1;34m========== [Début de l'entraînement] ==========" + "\033[0m")
     print(f"  Données train : {train_json} | {train_img_dir}")
