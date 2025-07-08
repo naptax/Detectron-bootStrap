@@ -36,12 +36,18 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--backbone", type=str, default="mask_rcnn_R_50_FPN_3x",
                         help="Nom du backbone à utiliser (voir liste dans le script)")
     parser.add_argument("--epochs", type=int, default=10, help="Nombre d'époques d'entraînement")
-    parser.add_argument("--output", type=str, default="output_semseg", help="Répertoire de sortie")
+    parser.add_argument("--output", type=str, default="output_semseg", help="Répertoire de sortie racine (les runs seront dans des sous-dossiers datés)")
     parser.add_argument("--train-json", type=str, default="dataset/train/annotations.json", help="Chemin du fichier COCO annotations d'entraînement")
     parser.add_argument("--train-img-dir", type=str, default="dataset/train/images", help="Dossier des images d'entraînement")
     parser.add_argument("--val-json", type=str, default="dataset/valid/annotations.json", help="Chemin du fichier COCO annotations de validation")
     parser.add_argument("--val-img-dir", type=str, default="dataset/valid/images", help="Dossier des images de validation")
     args = parser.parse_args()
+
+    from datetime import datetime
+    run_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    run_dir = os.path.join(args.output, run_time)
+    os.makedirs(run_dir, exist_ok=True)
+    print(f"\033[1;36mDossier de sortie du run : {run_dir}\033[0m")
 
     if args.backbone not in BACKBONES:
         print("\033[1;31m[ERREUR] Le backbone demandé n'est pas supporté.\033[0m")
@@ -91,7 +97,7 @@ if __name__ == "__main__":
     cfg.DATASETS.TRAIN = ("my_train",)
     cfg.DATASETS.TEST = ("my_val",)
     cfg.DATALOADER.NUM_WORKERS = 2
-    cfg.OUTPUT_DIR = args.output
+    cfg.OUTPUT_DIR = run_dir
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00025
     cfg.SOLVER.MAX_ITER = args.epochs * 500  # à ajuster selon la taille du dataset
@@ -118,5 +124,51 @@ if __name__ == "__main__":
     trainer.resume_or_load(resume=False)
     trainer.train()
 
+    # ===== Évaluation automatique à la fin de l'entraînement =====
+    print("\n\033[1;34m========== [Évaluation COCO sur validation] ==========" + "\033[0m")
+    from detectron2.evaluation import COCOEvaluator, inference_on_dataset
+    from detectron2.data import build_detection_test_loader
+    evaluator = COCOEvaluator("my_val", output_dir=cfg.OUTPUT_DIR)
+    val_loader = build_detection_test_loader(cfg, "my_val")
+    from detectron2.engine import DefaultPredictor
+    predictor = DefaultPredictor(cfg)
+    metrics = inference_on_dataset(predictor.model, val_loader, evaluator)
+    import json
+    metrics_path = os.path.join(cfg.OUTPUT_DIR, "metrics_coco.json")
+    with open(metrics_path, "w") as f:
+        json.dump(metrics, f, indent=2)
+    print(f"\033[1;36mMétriques COCO sauvegardées dans : {metrics_path}\033[0m")
+
+    # ===== Log CSV récapitulatif =====
+    import csv
+    log_path = os.path.join(args.output, "trainings_log.csv")
+    log_exists = os.path.isfile(log_path)
+    # Extraction des métriques principales
+    def safe_get(d, *keys):
+        for k in keys:
+            d = d.get(k, {})
+        return d if isinstance(d, (int, float)) else (d if d else None)
+    row = {
+        "run_time": run_time,
+        "run_dir": run_dir,
+        "backbone": args.backbone,
+        "epochs": args.epochs,
+        "train_json": train_json,
+        "val_json": val_json,
+        "AP_bbox": safe_get(metrics, 'bbox', 'AP'),
+        "AP50_bbox": safe_get(metrics, 'bbox', 'AP50'),
+        "AP75_bbox": safe_get(metrics, 'bbox', 'AP75'),
+        "AP_segm": safe_get(metrics, 'segm', 'AP'),
+        "AP50_segm": safe_get(metrics, 'segm', 'AP50'),
+        "AP75_segm": safe_get(metrics, 'segm', 'AP75'),
+    }
+    with open(log_path, "a", newline="") as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=list(row.keys()))
+        if not log_exists:
+            writer.writeheader()
+        writer.writerow(row)
+    print(f"\033[1;36mLog mis à jour : {log_path}\033[0m")
+
     print("\n\033[1;32m[Fin de l'entraînement]\033[0m")
-    print(f"Les modèles et logs sont disponibles dans : {cfg.OUTPUT_DIR}")
+    print(f"Les modèles, logs et métriques sont disponibles dans : {cfg.OUTPUT_DIR}")
+    print(f"Le tableau de suivi des runs est dans : {log_path}")
