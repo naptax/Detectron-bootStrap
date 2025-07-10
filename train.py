@@ -133,7 +133,8 @@ if __name__ == "__main__":
             if args.augment:
                 augmentations = [
                     T.RandomRotation(angle=[90, 180, 270], sample_style="choice", expand=False),
-                    T.RandomFlip(horizontal=True, vertical=True),
+                    T.RandomFlip(horizontal=True, vertical=False),
+                    T.RandomFlip(horizontal=False, vertical=True),
                     T.RandomBrightness(0.8, 1.2),
                     T.RandomContrast(0.8, 1.2),
                 ]
