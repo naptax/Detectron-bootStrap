@@ -41,6 +41,9 @@ if __name__ == "__main__":
     parser.add_argument("--train-img-dir", type=str, default="dataset/train/images", help="Dossier des images d'entraînement")
     parser.add_argument("--val-json", type=str, default="dataset/valid/annotations.json", help="Chemin du fichier COCO annotations de validation")
     parser.add_argument("--val-img-dir", type=str, default="dataset/valid/images", help="Dossier des images de validation")
+    parser.add_argument("--augment", dest="augment", action="store_true", help="Activer la data augmentation avancée (par défaut)")
+    parser.add_argument("--no-augment", dest="augment", action="store_false", help="Désactiver la data augmentation avancée")
+    parser.set_defaults(augment=True)
     args = parser.parse_args()
 
     from datetime import datetime
@@ -120,7 +123,29 @@ if __name__ == "__main__":
     print(f"  Résultats et modèles dans : {cfg.OUTPUT_DIR}")
     print(f"  Nombre d'itérations (max_iter Detectron2) : {args.max_iter}")
 
-    trainer = DefaultTrainer(cfg)
+    import detectron2.data.transforms as T
+    from detectron2.data import DatasetMapper, build_detection_train_loader
+    from detectron2.engine import DefaultTrainer
+
+    class CustomTrainer(DefaultTrainer):
+        @classmethod
+        def build_train_loader(cls, cfg):
+            if args.augment:
+                augmentations = [
+                    T.RandomRotation(angle=[90, 180, 270], sample_style="choice", expand=False),
+                    T.RandomFlip(horizontal=True, vertical=True),
+                    T.RandomBrightness(0.8, 1.2),
+                    T.RandomContrast(0.8, 1.2),
+                ]
+                return build_detection_train_loader(
+                    cfg,
+                    mapper=DatasetMapper(cfg, is_train=True, augmentations=augmentations)
+                )
+            else:
+                return build_detection_train_loader(cfg, mapper=DatasetMapper(cfg, is_train=True))
+
+    print(f"\033[1;34mData augmentation avancée : {'activée' if args.augment else 'désactivée'}\033[0m")
+    trainer = CustomTrainer(cfg)
     trainer.resume_or_load(resume=False)
     trainer.train()
 

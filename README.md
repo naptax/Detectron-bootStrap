@@ -43,8 +43,34 @@ python train.py --backbone mask_rcnn_R_50_FPN_3x --max-iter 5000 \
 | `--train-img-dir`       | str     | `dataset/train/images`         | Dossier images d'entraînement |
 | `--val-json`            | str     | `dataset/valid/annotations.json` | Fichier COCO de validation |
 | `--val-img-dir`         | str     | `dataset/valid/images`         | Dossier images de validation |
+| `--augment` / `--no-augment` | bool | `--augment` (activé par défaut) | Active ou désactive la data augmentation avancée (rotations, flips, luminosité, contraste) pour l'entraînement |
 
 Backbones disponibles : `mask_rcnn_R_50_FPN_3x`, `mask_rcnn_R_101_FPN_3x`, `panoptic_fpn_R_50_3x`, `panoptic_fpn_R_101_3x`
+
+---
+
+### Data augmentation avancée
+
+- Par défaut, la data augmentation avancée est activée lors de l'entraînement :
+    - Rotations multiples (90°, 180°, 270°)
+    - Flips horizontaux et verticaux
+    - Ajustements de luminosité et de contraste
+- Pour désactiver ces transformations aléatoires, ajoutez simplement l'option `--no-augment` à votre commande.
+
+**Exemples :**
+
+- Avec data augmentation (par défaut) :
+  ```bash
+  python train.py --augment ...
+  ```
+  ou simplement
+  ```bash
+  python train.py ...
+  ```
+- Sans data augmentation :
+  ```bash
+  python train.py --no-augment ...
+  ```
 
 ---
 
