@@ -35,7 +35,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Entraînement segmentation sémantique Detectron2.")
     parser.add_argument("-b", "--backbone", type=str, default="mask_rcnn_R_50_FPN_3x",
                         help="Nom du backbone à utiliser (voir liste dans le script)")
-    parser.add_argument("--epochs", type=int, default=10, help="Nombre d'époques d'entraînement")
+    parser.add_argument("--max-iter", type=int, default=5000, help="Nombre d'itérations d'entraînement (Detectron2-style)")
     parser.add_argument("--output", type=str, default="output_semseg", help="Répertoire de sortie racine (les runs seront dans des sous-dossiers datés)")
     parser.add_argument("--train-json", type=str, default="dataset/train/annotations.json", help="Chemin du fichier COCO annotations d'entraînement")
     parser.add_argument("--train-img-dir", type=str, default="dataset/train/images", help="Dossier des images d'entraînement")
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     cfg.OUTPUT_DIR = run_dir
     cfg.SOLVER.IMS_PER_BATCH = 2
     cfg.SOLVER.BASE_LR = 0.00025
-    cfg.SOLVER.MAX_ITER = args.epochs * 500  # à ajuster selon la taille du dataset
+    cfg.SOLVER.MAX_ITER = args.max_iter  # Detectron2-style
     cfg.SOLVER.STEPS = []
     cfg.MODEL.ROI_HEADS.BATCH_SIZE_PER_IMAGE = 128
     cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_classes
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     print(f"  Données train : {train_json} | {train_img_dir}")
     print(f"  Données val   : {val_json} | {val_img_dir}")
     print(f"  Résultats et modèles dans : {cfg.OUTPUT_DIR}")
-    print(f"  Nombre d'époques : {args.epochs}")
+    print(f"  Nombre d'itérations (max_iter Detectron2) : {args.max_iter}")
 
     trainer = DefaultTrainer(cfg)
     trainer.resume_or_load(resume=False)
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         "run_time": run_time,
         "run_dir": run_dir,
         "backbone": args.backbone,
-        "epochs": args.epochs,
+
         "train_json": train_json,
         "val_json": val_json,
         "AP_bbox": safe_get(metrics, 'bbox', 'AP'),

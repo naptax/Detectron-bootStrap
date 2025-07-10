@@ -1,4 +1,55 @@
-# Diagnostic GPU, CUDA et PyTorch sous WSL2
+# Entraînement de segmentation sémantique avec Detectron2
+
+[![Build Status](https://img.shields.io/github/actions/workflow/status/<OWNER>/<REPO>/ci.yml?branch=main)](https://github.com/<OWNER>/<REPO>/actions)
+[![Licence](https://img.shields.io/github/license/<OWNER>/<REPO>)](LICENSE)
+[![Issues](https://img.shields.io/github/issues/<OWNER>/<REPO>)](https://github.com/<OWNER>/<REPO>/issues)
+[![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/pytorch-compatible%20%7C%20cuda%2011%2B-important)](https://pytorch.org/)
+
+---
+
+Script minimal pour entraîner un modèle de segmentation sémantique avec [Detectron2](https://github.com/facebookresearch/detectron2) sur vos propres données COCO.
+
+## Installation
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+# Ou installez Detectron2 selon votre version de CUDA :
+pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu118/torch2.0/index.html
+```
+
+Préparez vos données COCO dans :
+- `dataset/train/images` et `dataset/train/annotations.json`
+- `dataset/valid/images` et `dataset/valid/annotations.json`
+
+## Lancement rapide
+
+```bash
+python train.py --backbone mask_rcnn_R_50_FPN_3x --max-iter 5000 \
+  --train-json dataset/train/annotations.json --train-img-dir dataset/train/images \
+  --val-json dataset/valid/annotations.json --val-img-dir dataset/valid/images
+```
+
+## Arguments principaux
+
+| Argument                | Type    | Défaut                        | Description |
+|-------------------------|---------|-------------------------------|-------------|
+| `-b`, `--backbone`      | str     | `mask_rcnn_R_50_FPN_3x`       | Backbone Detectron2 à utiliser |
+| `--max-iter`            | int     | `5000`                        | Nombre d'itérations d'entraînement |
+| `--output`              | str     | `output_semseg`               | Dossier racine de sortie |
+| `--train-json`          | str     | `dataset/train/annotations.json` | Fichier COCO d'entraînement |
+| `--train-img-dir`       | str     | `dataset/train/images`         | Dossier images d'entraînement |
+| `--val-json`            | str     | `dataset/valid/annotations.json` | Fichier COCO de validation |
+| `--val-img-dir`         | str     | `dataset/valid/images`         | Dossier images de validation |
+
+Backbones disponibles : `mask_rcnn_R_50_FPN_3x`, `mask_rcnn_R_101_FPN_3x`, `panoptic_fpn_R_50_3x`, `panoptic_fpn_R_101_3x`
+
+---
+
+Ce projet est distribué sous licence MIT.
+
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/<OWNER>/<REPO>/ci.yml?branch=main)](https://github.com/<OWNER>/<REPO>/actions)
 [![Licence](https://img.shields.io/github/license/<OWNER>/<REPO>)](LICENSE)
