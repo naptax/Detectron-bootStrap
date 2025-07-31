@@ -1,6 +1,5 @@
 # Entraînement de segmentation sémantique avec Detectron2
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/<OWNER>/<REPO>/ci.yml?branch=main)](https://github.com/<OWNER>/<REPO>/actions)
 [![Licence](https://img.shields.io/github/license/<OWNER>/<REPO>)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/<OWNER>/<REPO>)](https://github.com/<OWNER>/<REPO>/issues)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
