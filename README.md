@@ -136,5 +136,5 @@ Consultez le guide complet d'installation et de résolution de problèmes ici :
 Ce projet est distribué sous licence MIT. Voir le fichier [LICENSE](./LICENSE).
 
 ## Contributeurs
-- Auteur principal : @<VOTRE_GITHUB>
+- Auteur principal : @NaPtaX
 - Contributions bienvenues via Pull Request !
